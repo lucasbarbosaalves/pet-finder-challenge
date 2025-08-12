@@ -1,0 +1,542 @@
+{
+  "info": {
+    "_postman_id": "find-pet-api-collection",
+    "name": "Find Pet API",
+    "description": "Coleção completa da API Find Pet - Sistema de adoção de animais",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Registrar Organização",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ONG Patinhas Felizes\",\n  \"email\": \"contato@patinhasfelizes.org\",\n  \"password\": \"senha123456\",\n  \"address\": \"Rua das Flores, 123\",\n  \"city\": \"São Paulo\",\n  \"whatsapp\": \"11999999999\",\n  \"latitude\": -23.5505,\n  \"longitude\": -46.6333\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["register"]
+            },
+            "description": "Cadastra uma nova organização no sistema"
+          }
+        },
+        {
+          "name": "Login (Autenticação)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set(\"authToken\", responseJson.token);",
+                  "    pm.collectionVariables.set(\"organizationId\", responseJson.organization.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"contato@patinhasfelizes.org\",\n  \"password\": \"senha123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions"]
+            },
+            "description": "Autentica uma organização e retorna o token JWT"
+          }
+        },
+        {
+          "name": "Renovar Token",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/token/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["token", "refresh"]
+            },
+            "description": "Renova o token de acesso usando o refresh token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Organizations",
+      "item": [
+        {
+          "name": "Meu Perfil (Organização Autenticada)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            },
+            "description": "Retorna o perfil da organização autenticada"
+          }
+        },
+        {
+          "name": "Perfil de Organização por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orgs/{{organizationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orgs", "{{organizationId}}"]
+            },
+            "description": "Retorna o perfil de uma organização específica"
+          }
+        },
+        {
+          "name": "Organizações por Cidade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orgs/city/{{city}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orgs", "city", "{{city}}"]
+            },
+            "description": "Lista todas as organizações de uma cidade"
+          }
+        },
+        {
+          "name": "Organizações Próximas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orgs/nearby?latitude={{latitude}}&longitude={{longitude}}&maxDistance=10&city={{city}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orgs", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "{{latitude}}"
+                },
+                {
+                  "key": "longitude",
+                  "value": "{{longitude}}"
+                },
+                {
+                  "key": "maxDistance",
+                  "value": "10"
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}"
+                }
+              ]
+            },
+            "description": "Busca organizações próximas com base em coordenadas"
+          }
+        },
+        {
+          "name": "Calcular Distância",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orgs/{{organizationId}}/distance?latitude={{latitude}}&longitude={{longitude}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orgs", "{{organizationId}}", "distance"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "{{latitude}}"
+                },
+                {
+                  "key": "longitude",
+                  "value": "{{longitude}}"
+                }
+              ]
+            },
+            "description": "Calcula a distância até uma organização específica"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🐾 Pets",
+      "item": [
+        {
+          "name": "Cadastrar Pet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set(\"petId\", responseJson.pet.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Buddy\",\n  \"species\": \"dog\",\n  \"breed\": \"Golden Retriever\",\n  \"age\": \"adult\",\n  \"size\": \"large\",\n  \"description\": \"Cachorro muito dócil e carinhoso, adora brincar com crianças.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets"]
+            },
+            "description": "Cadastra um novo pet (requer autenticação)"
+          }
+        },
+        {
+          "name": "Detalhes do Pet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pets/{{petId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets", "{{petId}}"]
+            },
+            "description": "Retorna os detalhes completos de um pet específico"
+          }
+        },
+        {
+          "name": "Buscar Pets por Cidade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pets/search?city={{city}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets", "search"],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "{{city}}"
+                }
+              ]
+            },
+            "description": "Busca pets por cidade (parâmetro obrigatório)"
+          }
+        },
+        {
+          "name": "Buscar Pets com Filtros",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pets/search?city={{city}}&species=dog&age=adult&size=large&breed=Golden Retriever",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets", "search"],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "{{city}}"
+                },
+                {
+                  "key": "species",
+                  "value": "dog"
+                },
+                {
+                  "key": "age",
+                  "value": "adult"
+                },
+                {
+                  "key": "size",
+                  "value": "large"
+                },
+                {
+                  "key": "breed",
+                  "value": "Golden Retriever"
+                }
+              ]
+            },
+            "description": "Busca pets aplicando filtros opcionais"
+          }
+        },
+        {
+          "name": "Buscar Pets Próximos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pets/nearby?latitude={{latitude}}&longitude={{longitude}}&maxDistance=20&city={{city}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "{{latitude}}"
+                },
+                {
+                  "key": "longitude",
+                  "value": "{{longitude}}"
+                },
+                {
+                  "key": "maxDistance",
+                  "value": "20"
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}"
+                }
+              ]
+            },
+            "description": "Busca pets próximos com base em coordenadas geográficas"
+          }
+        },
+        {
+          "name": "Buscar Pets Próximos com Filtros",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pets/nearby?latitude={{latitude}}&longitude={{longitude}}&maxDistance=15&city={{city}}&species=cat&age=young&size=medium",
+              "host": ["{{baseUrl}}"],
+              "path": ["pets", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "{{latitude}}"
+                },
+                {
+                  "key": "longitude",
+                  "value": "{{longitude}}"
+                },
+                {
+                  "key": "maxDistance",
+                  "value": "15"
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}"
+                },
+                {
+                  "key": "species",
+                  "value": "cat"
+                },
+                {
+                  "key": "age",
+                  "value": "young"
+                },
+                {
+                  "key": "size",
+                  "value": "medium"
+                }
+              ]
+            },
+            "description": "Busca pets próximos aplicando filtros específicos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Testes de Exemplo",
+      "item": [
+        {
+          "name": "Exemplo: Fluxo Completo",
+          "item": [
+            {
+              "name": "1. Registrar Nova Organização",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Abrigo Animal Esperança\",\n  \"email\": \"abrigo@esperanca.org\",\n  \"password\": \"minhasenha123\",\n  \"address\": \"Av. Principal, 456\",\n  \"city\": \"Rio de Janeiro\",\n  \"whatsapp\": \"21988887777\",\n  \"latitude\": -22.9068,\n  \"longitude\": -43.1729\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["register"]
+                }
+              }
+            },
+            {
+              "name": "2. Fazer Login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const responseJson = pm.response.json();",
+                      "    pm.collectionVariables.set(\"authToken\", responseJson.token);",
+                      "    pm.collectionVariables.set(\"organizationId\", responseJson.organization.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"abrigo@esperanca.org\",\n  \"password\": \"minhasenha123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/sessions",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["sessions"]
+                }
+              }
+            },
+            {
+              "name": "3. Cadastrar Pet",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Luna\",\n  \"species\": \"cat\",\n  \"breed\": \"Siamês\",\n  \"age\": \"young\",\n  \"size\": \"medium\",\n  \"description\": \"Gata muito carinhosa e independente.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/pets",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["pets"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Teste de Erro - Login Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"inexistente@email.com\",\n  \"password\": \"senhaerrada\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["sessions"]
+            },
+            "description": "Teste de erro com credenciais inválidas"
+          }
+        },
+        {
+          "name": "Teste de Erro - Acesso sem Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["me"]
+            },
+            "description": "Teste de erro tentando acessar endpoint protegido sem token"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3333",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "organizationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "petId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "city",
+      "value": "São Paulo",
+      "type": "string"
+    },
+    {
+      "key": "latitude",
+      "value": "-23.5505",
+      "type": "string"
+    },
+    {
+      "key": "longitude",
+      "value": "-46.6333",
+      "type": "string"
+    }
+  ]
+}
