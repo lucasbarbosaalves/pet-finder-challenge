@@ -7,3 +7,4 @@ services:
     environment:
       - POSTGRESQL_USERNAME=docker
       - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=pet_finder
