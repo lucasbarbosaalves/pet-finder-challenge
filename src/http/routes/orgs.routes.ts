@@ -15,7 +15,7 @@ export async function organizationRoutes(fastify: FastifyInstance) {
 
   fastify.get(
     '/orgs/:organizationId',
-    organizationController.getProfile.bind(organizationController)
+    organizationController.getProfileById.bind(organizationController)
   );
   fastify.get(
     '/orgs/city/:city',

@@ -10,6 +10,28 @@ export class OrganizationController {
   }
 
   async getProfile(request: FastifyRequest, reply: FastifyReply) {
+    const organizationId = request.user.sub;
+
+    try {
+      const organization = await this.organizationService.findById(
+        organizationId
+      );
+
+      if (!organization) {
+        return reply.status(404).send({ message: 'Organization not found.' });
+      }
+
+      const { password_hash, ...organizationResponse } = organization;
+
+      return reply.status(200).send({
+        organization: organizationResponse,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getProfileById(request: FastifyRequest, reply: FastifyReply) {
     const getUserProfileParamsSchema = z.object({
       organizationId: z.uuid(),
     });
@@ -25,7 +47,6 @@ export class OrganizationController {
         return reply.status(404).send({ message: 'Organization not found.' });
       }
 
-      // Remove a senha da resposta
       const { password_hash, ...organizationResponse } = organization;
 
       return reply.status(200).send({
